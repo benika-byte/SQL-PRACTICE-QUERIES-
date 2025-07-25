@@ -130,3 +130,47 @@ join sales as s
 on e.emp_id = s.emp_id
 group by e.name, sale_amount
 having sale_amount > 50000
+
+--Rank employees by salary within each department
+SELECT name, department_id, salary,
+       RANK() OVER (PARTITION BY department_id ORDER BY salary DESC) AS salary_rank
+FROM employees;
+
+--Find top 3 earners in each department
+SELECT name, department_id, salary,
+       RANK() OVER (PARTITION BY department_id ORDER BY salary DESC) AS top_earner
+FROM employees
+limit 3 
+
+--Show cumulative sales by employee over time
+SELECT emp_id, sale_date , sale_amount,
+SUM(sale_amount) OVER (PARTITION BY emp_id ORDER BY sale_date) as cumulative_sales
+from sales 
+
+--Add a row number for each employee ordered by hire date
+SELECT *,
+ROW_NUMBER() OVER (ORDER BY hire_date) AS row_num
+FROM employees;
+
+--Find salary difference from department average
+SELECT name, salary , department_id , 
+salary - AVG(salary) OVER (PARTITION BY department_id ) AS  avg_sal_dif
+FROM employees; 
+
+--Running total of sales per region
+select sale_amount , region , sale_date,
+SUM(sale_amount) OVER (PARTITION BY region ORDER BY sale_date) as runnning_total
+FROM sales;
+
+-- Lead and lag salary in each department
+SELECT name, department_id , salary, 
+LAG(salary) OVER (PARTITION BY department_id ORDER BY salary) as prev_salary,
+LEAD(salary) OVER (PARTITION BY department_id ORDER BY salary) as next_salary
+FROM employees; 
+
+--First and last sale date per employee
+SELECT s.emp_id ,
+MIN(sale_date) as first_sal_date,
+MAX(sale_date) as last_sal_date
+from sales as s
+GROUP BY s.emp_id;
